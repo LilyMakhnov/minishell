@@ -11,7 +11,7 @@
 # **************************************************************************** #
 NAME = minishell
 
-SRCS	=	main.c
+SRCS	=	main.c llistenv.c
 
 OBJS	=	$(addprefix $(OBJDIR),$(SRCS:.c=.o))
 DEPS	=	$(addprefix $(DEPDIR),$(SRCS:.c=.d))
@@ -34,7 +34,7 @@ $(OBJDIR):
 			mkdir -p $(OBJDIR)
 
 $(NAME):	$(OBJDIR) $(OBJS)
-		gcc $(FLAGS) $(OBJS) -o $(NAME) $(LIBFT)
+		gcc $(FLAGS) $(OBJS) -o $(NAME) $(LIBFT) -lreadline
 
 clean:
 			/bin/rm -rf objs
