@@ -24,7 +24,7 @@ OBJS	=	${SRCS:.c=.o}
 
 BONUS			=	ft_split_set.c ft_lstlast.c ft_lstsize.c ft_lstnew.c \
 					ft_lstadd_front.c ft_lstadd_back.c \
-					ft_lstclear.c \
+					ft_lstclear.c ft_strndup.c \
 					ft_lstdelone.c ft_lstiter.c ft_lstmap.c \
 					ft_straddchar.c ft_chartostr.c \
 					get_next_line.c get_next_line_utils.c \

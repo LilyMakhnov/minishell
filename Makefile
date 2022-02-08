@@ -11,7 +11,7 @@
 # **************************************************************************** #
 NAME = minishell
 
-SRCS	=	main.c llistenv.c
+SRCS	=	minishell.c llistenv.c lexer.c split_cmd.c
 
 OBJS	=	$(addprefix $(OBJDIR),$(SRCS:.c=.o))
 DEPS	=	$(addprefix $(DEPDIR),$(SRCS:.c=.d))
