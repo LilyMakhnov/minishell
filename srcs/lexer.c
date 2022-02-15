@@ -4,10 +4,12 @@ t_token	*ft_lst_create_token(char *data, int type)
 {
 	t_token	*element;
 
-	element = (t_token *)malloc(sizeof(t_token));
-	if (!element)
+	element = malloc(sizeof(t_token));
+	if (!element || !data)
 		return (NULL);
 	element->data = ft_strdup(data);
+	if (!(element->data))
+		return (free(element), NULL);
 	element->type = type;
 	element->next = NULL;
 	return (element);
@@ -24,7 +26,7 @@ int	is_char_in_set(char c, char *set)
 	return (0);
 }
 
-void	lexer_general(char *str, int *i, t_token **token, int *state)
+int	lexer_general(char *str, int *i, t_token **token, int *state)
 {
 	if (is_char_in_set(str[*i], " \t<>;&|"))
 	{
@@ -32,19 +34,27 @@ void	lexer_general(char *str, int *i, t_token **token, int *state)
 		{
 			(*token)->next = ft_lst_create_token(0, 0);
 			*token = (*token)->next;
+			if (!(*token))
+				return (1);
 		}
 		if (!is_char_in_set(str[*i], " \t"))
 		{
 			(*token)->data = ft_straddchar((*token)->data, str[*i]);
+			if (!((*token)->data))
+				return (1);
 			(*token)->type = str[*i];
 			if (is_char_in_set(str[*i], "<>"))
 				if (str[*i + 1] && str[*i + 1] == str[*i])
 				{
 					(*token)->data = ft_straddchar((*token)->data, str[*i]);
+					if (!((*token)->data))
+						return (1);
 					(*token)->type += str[(*i)++];
 				}					
 			(*token)->next = ft_lst_create_token(0, 0);
 			*token = (*token)->next;
+			if (!(*token))
+				return (1);
 		}
 	}
 	else
@@ -58,7 +68,7 @@ void	lexer_general(char *str, int *i, t_token **token, int *state)
 	}
 }
 
-void lexer_build(char* cmd, t_token **src)
+int	lexer_build(char* cmd, t_token **src)
 {	
 	t_token	*token;
 	int		i;
@@ -69,6 +79,8 @@ void lexer_build(char* cmd, t_token **src)
 	token = *src;
 	i = 0;
 	line = ft_strtrim(cmd, " \t");
+	if (!line)
+		return (1);
 	while (line && line[i])
 	{
 		if (state == 0)
@@ -76,13 +88,15 @@ void lexer_build(char* cmd, t_token **src)
 		else if (state == 1 || state == 2 ) 
 		{
 			token->data = ft_straddchar(token->data, line[i]);
+			if (!(token->data))
+				return (free(line), 1);
 			if ((line[i] == '\"' && state == 2)
 				|| (line[i] == '\'' && state == 1))
 				state = 0;	
 		}	
 		i++;
 	}
-	if (line)
-		free(line);
+	free(line);
+	return (0);
 }
 

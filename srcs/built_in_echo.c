@@ -1,3 +1,4 @@
+#include "minishell.h"
 
 int	print_var(char *str, t_env *env)
 {

@@ -145,17 +145,19 @@ void	print_token(t_token *token)
 	}
 }
 
-void	cmd_token(t_cmd **cmd)
+int	cmd_token(t_cmd **cmd)
 {
 	t_cmd *tmp;
 
 	tmp = *cmd;
-	while(tmp)
+	while (tmp)
 	{
 		tmp->token = ft_lst_create_token(0, 0);
-		lexer_build(tmp->cmd, &tmp->token);
+		if (!tmp->token || lexer_build(tmp->cmd, &tmp->token))
+			return (1);
 		tmp = tmp->next;
 	}
+	return (0);
 }
 
 int	check_token(t_token *token)
@@ -209,7 +211,7 @@ int	main(int argc, char **argv, char **env)
 	(void)env;
 	while (1)
 	{
-		rdl = readline("$_minishell_>>");
+		rdl = readline("$_minishell_> ");
 		add_history(rdl);
 		while (is_char_in_set(*rdl, " \t"))
 			rdl++;

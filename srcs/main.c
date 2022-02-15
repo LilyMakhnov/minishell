@@ -1,155 +1,92 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: esivre <marvin@42.fr>                      +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/01/11 18:10:32 by esivre            #+#    #+#             */
-/*   Updated: 2022/01/11 18:11:30 by esivre           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "minishell.h"
 
-void	exec_cmd(char **cmd)
+void	free_token(t_token **token)
 {
-	pid_t	pid;
-	int		status = 0;
+	t_token	*tok;
 
-	pid = fork();
-	if (pid == -1)
-		perror("fork");
-	else if (pid > 0) {
-		waitpid(pid, &status, 0);
-		kill(pid, SIGTERM);
-	} else {
-		if (execve(cmd[0], cmd, NULL) == -1)
-			perror("shell");
-		exit(1);
-	}
-}
-
-void	free_array(char **array)
-{
-	int i;
-
-	i = 0;
-	while (array[i])
+	while (*token)
 	{
-		free(array[i]);
-		array[i] = NULL;
-		i++;
+		tok = (*token)->next;
+		if ((*token)->data)
+			free((*token)->data);
+		free(*token);
+		(*token) = tok;
 	}
-	free(array);
-	array = NULL;
 }
 
-char	*ft_strtrijoin(char *str1, char *str2, char *str3)
+void	free_cmd(t_cmd **cmd)
 {
-	char *bin;
+	t_cmd	*tmp;
 
-	bin = malloc(ft_strlen(str1) + ft_strlen(str2) + ft_strlen(str3) + 1);
-	if (!bin)
-		return (NULL);
-	ft_strlcpy(bin, str1, ft_strlen(str1) + 1);
-	ft_strlcat(bin, str2, ft_strlen(bin) + ft_strlen(str2) + 1);
-	ft_strlcat(bin, str3, ft_strlen(bin) + ft_strlen(str3) + 1);
-	return (bin);
+	if (cmd)
+	{
+		while (*cmd)
+		{
+			tmp = (*cmd)->next;
+			if ((*cmd)->str)
+				free((*cmd)->str);
+		//	if ((*cmd)->argv)
+		//		free((*cmd)->argv);
+			if ((*cmd)->token)
+				free_token((*cmd)->token);
+		//	if ((*cmd)->name_file)
+		//		free((*cmd)->name_file);
+			free((*cmd));
+			*cmd = tmp;
+		}
+	}
 }
 
-void	built_in_cd(char *path)
+void	go_to_exec(t_cmd **cmd, char *str)
 {
-	if (chdir(path) == -1) {
-		perror("chdir()");
+	int	res;
+
+	res = pars(str, cmd);
+	if (res == 50)
+	{
+		free_all_env_str_ret_malloc_error(cmd_line, str);
+		exit (1);
+	}
+	if (res == 0)
+	{
+		if (str && *cmd)
+		{
+			res = ft_exec(cmd_line);
+			if (res != 0)
+			{
+				free_all_error(cmd_line, str, res);
+				exit (1);
+			}
+		}
 	}
 }
 
 int	main(int argc, char **argv, char **env)
 {
-	t_token	*token;
-	t_env	*link_env;
-	char	*line;
-	char	**cmd;
-	char	**path;
-	char	*bin;
-	int 	i;
+	char	*rdl;
+	t_cmd	*cmd;
 
-	(void)argc;
-	(void)argv;
-	line = NULL;
-	cmd = NULL;
+	cmd_line = NULL;
+	g_exit_status = 0;
+//	ft_init_t_env(envp);
+//	signal(SIGINT, signal_cmd);
 	signal(SIGQUIT, SIG_IGN);
-	//signal(SIGINT, signal_handler);
-	path = get_path(env);
-	if (!path)
-		exit(1);
-	link_env = ft_lst_env(env);
-	write(1, "$_sluty-shell_> ", ft_strlen("$_sluty-shell_> "));
-	while (get_next_line(0, &line) > 0)
-    {
-		token = ft_lst_create_token(0, 0);
-		lexer_build(line, &token);
-		//parser_shell(token);
-		cmd = ft_split_set(line, " ");
-		free(line);
-		line = NULL;
-		if (!cmd)
-		{
-			free_array(path);
-			exit(1);
-		}
-		if (cmd[0] && !ft_strncmp(cmd[0], "cd", 2))
-		{
-			if (cmd[1])
-				built_in_cd(cmd[1]);
-		}
-		else if (cmd[0] && !ft_strncmp(cmd[0], "echo", 4))
-				built_in_echo(cmd, link_env);
-		else if (cmd[0] && !ft_strncmp(cmd[0], "env", 3))
-				lst_print(link_env, 1);
-		else if (cmd[0] && !ft_strncmp(cmd[0], "expand", 6))
-		{
-			if (cmd[1])
-				lst_set_var(&link_env, cmd[1]);
-		}
-		else if (cmd[0] && !ft_strncmp(cmd[0], "unset", 5))
-		{
-			if (cmd[1])
-				lst_remove_var(&link_env, cmd[1]);
-		}
-		else if (!access(cmd[0], F_OK))
-			exec_cmd(cmd);
-		else if (cmd[0])
-		{
-			i = -1;
-			while (path[++i])
-			{
-				bin = ft_strtrijoin(path[i], "/", cmd[0]);	
-				if (!bin)
-				{
-					free_array(path);
-					free_array(cmd);
-					exit(1);
-				}		
-				if (!access(bin, F_OK))
-				{
-					free(cmd[0]);
-					cmd[0] = bin;
-					exec_cmd(cmd);
-					break;
-				}
-				free(bin);
-				bin = NULL;
-			}
-			if (!bin)
-				write(1, "command not found\n", 18);
-		}
-		free_array(cmd);
-		write(1, "$_sluty-shell_> ", ft_strlen("$_sluty-shell_> "));
+//	if (!argc && !av)
+//		return (0);
+	while (1)
+	{
+		rdl = readline("sluty_shell$> ");
+		add_history(rdl);
+//		signal(SIGINT, signal_cmd);
+		signal(SIGQUIT, SIG_IGN);
+//		if (str == NULL)
+//			return (print_exit_free_env_all(&cmd_line));
+//		if (check_str(str) != 0)
+//			error_str();
+//		else
+			go_to_exec(&cmd, rdl);
+		if (rdl)
+			free(rdl);
+		free_cmd(&cmd);
 	}
-	free_array(path);
-	ft_free_linkedlist(&link_env);
-	return (0);
 }
-
