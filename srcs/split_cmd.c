@@ -44,7 +44,7 @@ int	add_next_cmd(char *rdl, t_cmd **cmd)
 		tmp = ft_strndup(rdl, ip + 1);
 	else
 		tmp = ft_strdup(rdl);
-	(*cmd)->cmd = ft_strtrim(tmp, " \t");
+	(*cmd)->str = ft_strtrim(tmp, " \t");
 	free(tmp);
 	return (ip);
 }
@@ -74,8 +74,8 @@ void	print_cmd(t_cmd *cmd)
 	while (cmd)
 	{
 		write(1, "cmd:\n", 5);
-		if (cmd->cmd)
-			write(1, cmd->cmd, ft_strlen(cmd->cmd));
+		if (cmd->str)
+			write(1, cmd->str, ft_strlen(cmd->str));
 		write(1, "\n", 1);
 		cmd = cmd->next;
 	}

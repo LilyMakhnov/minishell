@@ -82,7 +82,7 @@ void	ft_free_cmd(t_cmd **cmd)
 	while (*cmd)
 	{
 		tmp = (*cmd)->next;
-		free((*cmd)->cmd);
+		free((*cmd)->str);
 		ft_free_token(&(*cmd)->token);
 		free(*cmd);
 		*cmd = tmp;
@@ -120,13 +120,14 @@ void	print_cmd_token(t_cmd *cmd)
 	while (cmd)
 	{
 		write(1, "cmd :\n", 6);
-		write(1, cmd->cmd, ft_strlen(cmd->cmd));
+		write(1, cmd->str, ft_strlen(cmd->str));
 		write(1, "\n", 1);
 		write(1, "token :\n", 8);
 		while(cmd->token)
 		{
 			write(1, cmd->token->data, ft_strlen(cmd->token->data));
 			write(1, "\n", 1);
+			printf("type :%i\n", cmd->token->type);
 			cmd->token = cmd->token->next;
 		}
 		cmd = cmd->next;
@@ -152,8 +153,8 @@ int	cmd_token(t_cmd **cmd)
 	tmp = *cmd;
 	while (tmp)
 	{
-		tmp->token = ft_lst_create_token(0, 0);
-		if (!tmp->token || lexer_build(tmp->cmd, &tmp->token))
+		tmp->token = ft_lst_create_token("", 0);
+		if (!tmp->token || lexer_build(tmp->str, &tmp->token))
 			return (1);
 		tmp = tmp->next;
 	}

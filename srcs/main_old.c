@@ -12,7 +12,7 @@
 
 #include "minishell.h"
 
-void	exec_cmd(char **cmd)
+void	exec_cmd(char **cmd, char **env)
 {
 	pid_t	pid;
 	int		status = 0;
@@ -24,7 +24,7 @@ void	exec_cmd(char **cmd)
 		waitpid(pid, &status, 0);
 		kill(pid, SIGTERM);
 	} else {
-		if (execve(cmd[0], cmd, NULL) == -1)
+		if (execve(cmd[0], cmd, env) == -1)
 			perror("shell");
 		exit(1);
 	}
@@ -67,8 +67,9 @@ void	built_in_cd(char *path)
 
 int	main(int argc, char **argv, char **env)
 {
-	t_token	*token;
+	//t_token	*token;
 	t_env	*link_env;
+	char	**new_env;
 	char	*line;
 	char	**cmd;
 	char	**path;
@@ -85,11 +86,12 @@ int	main(int argc, char **argv, char **env)
 	if (!path)
 		exit(1);
 	link_env = ft_lst_env(env);
+	new_env = ft_env_from_lst(link_env);
 	write(1, "$_sluty-shell_> ", ft_strlen("$_sluty-shell_> "));
 	while (get_next_line(0, &line) > 0)
     {
-		token = ft_lst_create_token(0, 0);
-		lexer_build(line, &token);
+	//	token = ft_lst_create_token(0, 0);
+	//	lexer_build(line, &token);
 		//parser_shell(token);
 		cmd = ft_split_set(line, " ");
 		free(line);
@@ -119,7 +121,7 @@ int	main(int argc, char **argv, char **env)
 				lst_remove_var(&link_env, cmd[1]);
 		}
 		else if (!access(cmd[0], F_OK))
-			exec_cmd(cmd);
+			exec_cmd(cmd, env);
 		else if (cmd[0])
 		{
 			i = -1;
@@ -136,7 +138,7 @@ int	main(int argc, char **argv, char **env)
 				{
 					free(cmd[0]);
 					cmd[0] = bin;
-					exec_cmd(cmd);
+					exec_cmd(cmd, env);
 					break;
 				}
 				free(bin);
@@ -146,6 +148,8 @@ int	main(int argc, char **argv, char **env)
 				write(1, "command not found\n", 18);
 		}
 		free_array(cmd);
+		free_array(new_env);
+		new_env = ft_env_from_lst(link_env);
 		write(1, "$_sluty-shell_> ", ft_strlen("$_sluty-shell_> "));
 	}
 	free_array(path);

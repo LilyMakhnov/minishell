@@ -26,77 +26,110 @@ int	is_char_in_set(char c, char *set)
 	return (0);
 }
 
-int	lexer_general(char *str, int *i, t_token **token, int *state)
+int	new_token_next(t_token **token)
 {
-	if (is_char_in_set(str[*i], " \t<>;&|"))
+	(*token)->next = ft_lst_create_token("", 0);
+	*token = (*token)->next;
+	if (!(*token))
+		return (1);
+	return (0);
+}
+
+int	lexer_general_std(char a, int *state, t_token **token)
+{
+	if (a == '\'')
+		*state = 1;
+	else if (a == '\"')
+		*state = 2;
+	(*token)->data = ft_straddchar((*token)->data, a);
+	if (!((*token)->data))
+		return (1);
+	(*token)->type = 1;
+	return (0);
+}
+
+int	lexer_general_op(char *str, int *i, t_token **token)
+{
+	if ((*token)->data && ft_strlen((*token)->data) > 0)
 	{
-		if ((*token)->data && ft_strlen((*token)->data) > 0) 
-		{
-			(*token)->next = ft_lst_create_token(0, 0);
-			*token = (*token)->next;
-			if (!(*token))
-				return (1);
-		}
-		if (!is_char_in_set(str[*i], " \t"))
+		if (new_token_next(token))
+			return (1);
+	}
+	(*token)->data = ft_straddchar((*token)->data, str[*i]);
+	if (!((*token)->data))
+		return (1);
+	(*token)->type = str[*i];
+	if (is_char_in_set(str[*i], "<>"))
+	{
+		if (str[*i + 1] && str[*i + 1] == str[*i])
 		{
 			(*token)->data = ft_straddchar((*token)->data, str[*i]);
 			if (!((*token)->data))
 				return (1);
-			(*token)->type = str[*i];
-			if (is_char_in_set(str[*i], "<>"))
-				if (str[*i + 1] && str[*i + 1] == str[*i])
-				{
-					(*token)->data = ft_straddchar((*token)->data, str[*i]);
-					if (!((*token)->data))
-						return (1);
-					(*token)->type += str[(*i)++];
-				}					
-			(*token)->next = ft_lst_create_token(0, 0);
-			*token = (*token)->next;
-			if (!(*token))
+			(*token)->type += str[(*i)++];
+		}
+	}				
+	if (new_token_next(token))
+		return (1);
+	return (0);
+}
+
+int	lexer_general(char *str, int *i, t_token **token, int *state)
+{
+	if (is_char_in_set(str[*i], " \t"))
+	{
+		if ((*token)->data && ft_strlen((*token)->data) > 0)
+		{
+			if (new_token_next(token))
 				return (1);
 		}
 	}
-	else
+	else if (is_char_in_set(str[*i], "<>|"))
 	{
-		if (str[*i] == '\'')
-			*state = 1;
-		else if (str[*i] == '\"')
-			*state = 2;
-		(*token)->data = ft_straddchar((*token)->data, str[*i]);
-		(*token)->type = 1;
+		if (lexer_general_op(str, i, token))
+			return (1);
 	}
+	else
+		if (lexer_general_std(str[*i], state, token))
+			return (1);
+	return (0);
 }
 
-int	lexer_build(char* cmd, t_token **src)
+int	lexer_quote(char *line, int i, t_token **token, int *state)
+{
+	(*token)->data = ft_straddchar((*token)->data, line[i]);
+	if (!((*token)->data))
+		return (1);
+	if ((line[i] == '\"' && *state == 2) || (line[i] == '\'' && *state == 1))
+		*state = 0;
+	return (0);
+}
+
+int	lexer_build(char *cmd, t_token **src)
 {	
 	t_token	*token;
 	int		i;
 	int		state;
 	char	*line;
-	
+
 	state = 0;
 	token = *src;
-	i = 0;
+	i = -1;
 	line = ft_strtrim(cmd, " \t");
 	if (!line)
 		return (1);
-	while (line && line[i])
+	while (line && line[++i])
 	{
 		if (state == 0)
-			lexer_general(line, &i, &token, &state);
-		else if (state == 1 || state == 2 ) 
 		{
-			token->data = ft_straddchar(token->data, line[i]);
-			if (!(token->data))
+			if (lexer_general(line, &i, &token, &state))
 				return (free(line), 1);
-			if ((line[i] == '\"' && state == 2)
-				|| (line[i] == '\'' && state == 1))
-				state = 0;	
+		}
+		else if (state == 1 || state == 2)
+		{
+			if (lexer_quote(line, i, &token, &state))
+				return (free(line), 1);
 		}	
-		i++;
 	}
-	free(line);
-	return (0);
+	return (free(line), 0);
 }
-

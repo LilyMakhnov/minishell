@@ -17,6 +17,7 @@ typedef struct s_cmd t_cmd;
 
 struct s_cmd
 {
+	char *cmd;
 	char *str;
 	int fd_in;
 	int fd_out;
@@ -39,6 +40,7 @@ struct s_env
 	t_env *next;
 };
 
+char **ft_env_from_lst(t_env *llenv);
 void	free_token(t_token **token);
 void		free_cmd(t_cmd **cmd);
 int	print_var(char *str, t_env *env);
@@ -69,5 +71,6 @@ int		is_char_in_set(char c, char *set);
 void	ft_lst_pushback(t_env **liste, t_env *element);
 t_env	*ft_lst_last(t_env *lst);
 void	free_env(t_env **liste);
+void	ft_free_linkedlist(t_env **liste);
 
 #endif

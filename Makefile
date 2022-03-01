@@ -11,7 +11,7 @@
 # **************************************************************************** #
 NAME = minishell
 
-SRCS	=  llistenv.c lexer.c split_cmd.c minishell.c built_in_env.c built_in_echo.c
+SRCS	=  llistenv.c lexer.c split_cmd.c main_old.c built_in_env.c built_in_echo.c
 
 OBJS	=	$(addprefix $(OBJDIR),$(SRCS:.c=.o))
 DEPS	=	$(addprefix $(DEPDIR),$(SRCS:.c=.d))
