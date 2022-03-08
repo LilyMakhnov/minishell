@@ -15,6 +15,20 @@ typedef struct s_env	t_env;
 typedef struct s_token	t_token;
 typedef struct s_cmd t_cmd;
 
+typedef enum token
+{
+    NONE, //defaut set
+    ARG, //word
+    FILE_IN, //word == '<'
+    HERE_DOC, // word == '<<'
+    FILE_OUT, //word == '>'
+    FILE_OUT_SUR, //word == '>>'
+    OPEN_FILE, // word following '<'
+    LIMITOR, // word following '<<'
+    EXIT_FILE, // word followinf '>' FILE_OUT
+    EXIT_FILE_RET // word following '>>'  FILE_OUT_SUR
+}	t_e_token;
+
 struct s_cmd
 {
 //	char *cmd;
@@ -30,7 +44,8 @@ struct s_cmd
 struct s_token
 {
 	char	*data;
-	int		type;
+//	int		type;
+	t_e_token	type;
 	t_token *next;
 };
 
@@ -65,7 +80,8 @@ void	print_cmd(t_cmd *cmd);  //debug
 
 t_env	*ft_lst_env(char **env);
 t_env	*ft_lst_create(char *value);
-t_token	*ft_lst_create_token(char *data, int type);
+//_token	*ft_lst_create_token(char *data, int type);
+t_token	*ft_lst_create_token(char *data);
 int		lexer_general(char *str, int *i, t_token **token, int *state);
 int		lexer_build(char* line, t_token **src);
 int		is_char_in_set(char c, char *set);

@@ -1,11 +1,4 @@
 #include "minishell.h"
-/*
-int is_in_quotes(int j, char *str)
-{
-	int i
-	while (str[])
-	str[i]
-}*/
 
 int	get_index_pipe(char *rdl)
 {

@@ -20,10 +20,13 @@ void	exec_cmd(char **cmd, char **env)
 	pid = fork();
 	if (pid == -1)
 		perror("fork");
-	else if (pid > 0) {
+	else if (pid > 0) 
+	{
 		waitpid(pid, &status, 0);
 		kill(pid, SIGTERM);
-	} else {
+	} 
+	else 
+	{
 		if (execve(cmd[0], cmd, env) == -1)
 			perror("shell");
 		exit(1);
@@ -121,7 +124,7 @@ int	main(int argc, char **argv, char **env)
 				lst_remove_var(&link_env, cmd[1]);
 		}
 		else if (!access(cmd[0], F_OK))
-			exec_cmd(cmd, env);
+			exec_cmd(cmd, new_env);
 		else if (cmd[0])
 		{
 			i = -1;
@@ -138,7 +141,7 @@ int	main(int argc, char **argv, char **env)
 				{
 					free(cmd[0]);
 					cmd[0] = bin;
-					exec_cmd(cmd, env);
+					exec_cmd(cmd, new_env);
 					break;
 				}
 				free(bin);

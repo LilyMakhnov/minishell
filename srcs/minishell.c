@@ -1,5 +1,7 @@
 #include "minishell.h"
 
+int	g_exit_status;
+
 char	*ft_strndup(const char *src, size_t n)
 {
 	int		i;
@@ -42,7 +44,7 @@ int check_syntax_pipe(char *rdl)
 	i = 0;
 	ret = 0;
 	str = ft_strtrim(rdl, " \t\n");
-	if (str[i] && is_char_in_set(str[i], "|<>")) 
+	if (str[i] && is_char_in_set(str[i], "|")) 
 		ret = str[i];
 	while (str[i])
 	{
@@ -50,14 +52,15 @@ int check_syntax_pipe(char *rdl)
 			ret = '|';
 		i++;
 	}
-	if (is_char_in_set(str[i - 1], "|<>"))
+	if (is_char_in_set(str[i - 1], "|"))
 		ret = str[i - 1];
 	free(str);	
 	if (ret > 0)
 	{
-		write(2, "syntax error ", 13);
+		write(2, "syntax error near unexpected token ", ft_strlen("syntax error near unexpected token "));
 		write(2, &ret, 1);
 		write(2, "\n", 1);
+		g_exit_status = 2;
 	}
 	return (ret);
 }
@@ -156,7 +159,7 @@ int	cmd_token(t_cmd **cmd)
 	tmp = *cmd;
 	while (tmp)
 	{
-		tmp->token = ft_lst_create_token("", 0);
+		tmp->token = ft_lst_create_token("");
 		if (!tmp->token || lexer_build(tmp->str, &tmp->token))
 			return (1);
 		tmp = tmp->next;
@@ -164,31 +167,63 @@ int	cmd_token(t_cmd **cmd)
 	return (0);
 }
 
+int	is_type_operator(t_e_token type)
+{
+	if (type == FILE_IN || type == HERE_DOC 
+		|| type == FILE_OUT  || type == FILE_OUT_SUR )
+		return (1);
+	else
+		return (0);	
+}
+
+void	unexpected_token(char *str)
+{
+	write(2, "syntax error near unexpected token `",
+		ft_strlen("syntax error near unexpected token `"));
+	if (ft_strlen(str) == 1 && str[0] == '\n')
+		write(2, "newline", ft_strlen("newline"));	
+	else
+		write(2, str, ft_strlen(str));
+	write(2, "\'\n", 2);
+	g_exit_status = 2;
+}
+
+t_e_token	upgrade_type(t_e_token prev, t_e_token curr)
+{
+	if (prev == FILE_IN)
+		return (OPEN_FILE);
+	if (prev == HERE_DOC)
+		return (LIMITOR);	
+	if (prev == FILE_OUT)
+		return (EXIT_FILE);
+	if (prev == FILE_OUT_SUR)
+		return (EXIT_FILE_RET);
+	return (curr);	
+}
+
 int	check_token(t_token *token)
 {
 	int operator;
+	t_e_token prev;
 
-	if (token->type != 1)
-	{			
-		write(2, "Error syntax ", 13);
-		write(2, token->data, ft_strlen(token->data));
-		write(2, "\n", 1);
-		return (1);
-	}
+	prev = NONE;
+	if (token->type != ARG)
+		return (unexpected_token(token->data), 1);
 	operator = 0;
 	while (token)
 	{
-		if (token->type != 1)
+		if (is_type_operator(token->type))
 			operator++;
 		else
-			operator = 0;
-		if (operator > 1)
 		{
-			write(2, "Error syntax ", 13);
-			write(2, token->data, ft_strlen(token->data));
-			write(2, "\n", 1);
-			return (1);		 
+			operator = 0;
+			token->type = upgrade_type(prev, token->type);
 		}
+		if (operator > 1)
+			return (unexpected_token(token->data), 1);		 
+		if (!token->next && is_type_operator(token->type))
+			return (unexpected_token("\n"), 1);
+		prev = token->type;
 		token = token->next;
 	}
 	return (0);
@@ -337,6 +372,7 @@ int	main(int argc, char **argv, char **env)
 	(void)argc;
 	(void)argv;
 	llenv = ft_lst_env(env);
+	g_exit_status = 0;
 	if (!llenv)
 	{
 		write(2, "Error malloc\n", ft_strlen("Error malloc\n"));
@@ -362,7 +398,7 @@ int	main(int argc, char **argv, char **env)
 			cmd_token(&cmd);
 			if (!check_token_cmd(cmd))
 			{
-				print_cmd_token(cmd);
+//				print_cmd_token(cmd);
 				expand_cmd_token(cmd, llenv);
 				print_cmd_token(cmd);
 			}

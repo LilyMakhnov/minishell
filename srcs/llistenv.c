@@ -45,14 +45,20 @@ t_env	*ft_lst_env(char **env)
 	int 	i;
 
 	if (env[0])
+	{
 		first = ft_lst_create(env[0]);
+		if (!first)
+			return (NULL);
+	}
 	else
-		return (0);
+		return (NULL);
 	tmp = first;
 	i = 0;
-	while (first && env[++i])
+	while (tmp && env[++i])
 	{
 		tmp->next = ft_lst_create(env[i]);
+		if (!(tmp->next))
+			return (ft_free_linkedlist(&first), NULL);
 		tmp = tmp->next;
 	}
 	return (first);
@@ -66,6 +72,8 @@ t_env	*ft_lst_create(char *value)
 	if (!element)
 		return (NULL);
 	element->value = ft_strdup(value);
+	if (!(element->value))
+		return (free(element), NULL);
 	element->next = NULL;
 	return (element);
 }

@@ -1,6 +1,6 @@
 #include <minishell.h>
 
-t_token	*ft_lst_create_token(char *data, int type)
+t_token	*ft_lst_create_token(char *data)
 {
 	t_token	*element;
 
@@ -10,7 +10,7 @@ t_token	*ft_lst_create_token(char *data, int type)
 	element->data = ft_strdup(data);
 	if (!(element->data))
 		return (free(element), NULL);
-	element->type = type;
+	element->type = NONE;
 	element->next = NULL;
 	return (element);
 }
@@ -28,7 +28,7 @@ int	is_char_in_set(char c, char *set)
 
 int	new_token_next(t_token **token)
 {
-	(*token)->next = ft_lst_create_token("", 0);
+	(*token)->next = ft_lst_create_token("");
 	*token = (*token)->next;
 	if (!(*token))
 		return (1);
@@ -44,8 +44,34 @@ int	lexer_general_std(char a, int *state, t_token **token)
 	(*token)->data = ft_straddchar((*token)->data, a);
 	if (!((*token)->data))
 		return (1);
-	(*token)->type = 1;
+	(*token)->type = ARG;
 	return (0);
+}
+/*
+enum type{
+    NONE, //defaut set
+    ARG, //word
+    FILE_IN, //word == '<'
+    HERE_DOC, // word == '<<'
+    FILE_OUT, //word == '>'
+    FILE_OUT_SUR, //word == '>>'
+    OPEN_FILE, // word following '<'
+    LIMITOR, // word following '<<'
+    EXIT_FILE, // word followinf '>'
+    EXIT_FILE_RET; // word following '>>'
+}*/
+
+t_e_token	get_type(char *str, int i)
+{
+	if (str[i] == '>' && str[i + 1] && str[i + 1] == '>')
+		return (FILE_OUT_SUR);
+	if (str[i] == '>')
+		return (FILE_OUT);	
+	if (str[i] == '<' && str[i + 1] && str[i + 1] == '<')
+		return (HERE_DOC);	
+	if (str[i] == '<')
+		return (FILE_IN);
+	return (ARG);			
 }
 
 int	lexer_general_op(char *str, int *i, t_token **token)
@@ -58,7 +84,8 @@ int	lexer_general_op(char *str, int *i, t_token **token)
 	(*token)->data = ft_straddchar((*token)->data, str[*i]);
 	if (!((*token)->data))
 		return (1);
-	(*token)->type = str[*i];
+	//(*token)->type = str[*i];
+	(*token)->type = get_type(str, *i);
 	if (is_char_in_set(str[*i], "<>"))
 	{
 		if (str[*i + 1] && str[*i + 1] == str[*i])
@@ -66,11 +93,15 @@ int	lexer_general_op(char *str, int *i, t_token **token)
 			(*token)->data = ft_straddchar((*token)->data, str[*i]);
 			if (!((*token)->data))
 				return (1);
-			(*token)->type += str[(*i)++];
+			(*i)++;
+	//		(*token)->type += str[(*i)++];
 		}
-	}				
-	if (new_token_next(token))
-		return (1);
+	}
+	if (str[*i + 1])
+	{			
+		if (new_token_next(token))
+			return (1);
+	}
 	return (0);
 }
 
