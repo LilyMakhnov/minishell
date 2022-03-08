@@ -6,17 +6,17 @@
 #    By: esivre <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/10/27 16:19:19 by esivre            #+#    #+#              #
-#    Updated: 2022/01/11 17:40:30 by esivre           ###   ########.fr        #
+#    Updated: 2022/03/03 14:37:09 by esivre           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 NAME = minishell
 
-SRCS	=  llistenv.c lexer.c split_cmd.c main_old.c built_in_env.c built_in_echo.c
+SRCS	=  llistenv.c lexer.c split_cmd.c minishell.c built_in_env.c built_in_echo.c ft_str.c
 
 OBJS	=	$(addprefix $(OBJDIR),$(SRCS:.c=.o))
 DEPS	=	$(addprefix $(DEPDIR),$(SRCS:.c=.d))
 LIBFT	=   libft/libft.a
-FLAGS	=	-Wall -Wextra -Werror
+FLAGS	=	-Wall -Wextra -Werror -g
 SRCDIR	=	./srcs/
 OBJDIR	=	./objs/
 DEPDIR	=	./objs/

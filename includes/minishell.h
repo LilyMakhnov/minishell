@@ -17,7 +17,7 @@ typedef struct s_cmd t_cmd;
 
 struct s_cmd
 {
-	char *cmd;
+//	char *cmd;
 	char *str;
 	int fd_in;
 	int fd_out;
@@ -40,6 +40,8 @@ struct s_env
 	t_env *next;
 };
 
+char	*ft_strtrijoin(char *str1, char *str2, char *str3);
+int		lst_get_var(t_env *env, char *var, char **value);
 char **ft_env_from_lst(t_env *llenv);
 void	free_token(t_token **token);
 void		free_cmd(t_cmd **cmd);
@@ -48,7 +50,7 @@ int parse_var(char *cmd, int *j, t_env *env);
 void	built_in_echo(char **cmd, t_env *env);
 
 char	*get_var(char **env, char *var);
-char	*lst_get_var(t_env *env, char *var);
+//char	*lst_get_var(t_env *env, char *var);
 void	lst_set_var(t_env **env, char *var);
 void	lst_remove_var(t_env **env, char *var);
 char	**get_path(char **env);

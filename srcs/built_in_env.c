@@ -19,7 +19,7 @@ char	*get_var(char **env, char *var)
 	}
 	return (NULL);
 }
-
+/*
 char	*lst_get_var(t_env *env, char *var)
 {
 	char *ret;
@@ -37,6 +37,24 @@ char	*lst_get_var(t_env *env, char *var)
 		env = env->next;
 	}
 	return (NULL);
+}*/
+
+int	lst_get_var(t_env *env, char *var, char **value)
+{
+	while (env)
+	{
+		if(!ft_strncmp(env->value, var, ft_strlen(var) )
+						&& env->value[ft_strlen(var)] == '=')
+		{
+			(*value) = ft_strdup(env->value + ft_strlen(var) + 1);
+			if (!(*value))
+				return (1);
+			return (0);	
+		}
+		env = env->next;
+	}
+	(*value) = NULL;
+	return (0);
 }
 
 void	lst_set_var(t_env **env, char *var)
