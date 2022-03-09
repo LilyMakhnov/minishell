@@ -1,16 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   main_old.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: esivre <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: crondeau <crondeau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/11 18:10:32 by esivre            #+#    #+#             */
-/*   Updated: 2022/01/11 18:11:30 by esivre           ###   ########.fr       */
+/*   Updated: 2022/03/09 14:09:19 by crondeau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int	g_exit_status;
 
 void	exec_cmd(char **cmd, char **env)
 {
@@ -33,21 +35,7 @@ void	exec_cmd(char **cmd, char **env)
 	}
 }
 
-void	free_array(char **array)
-{
-	int i;
-
-	i = 0;
-	while (array[i])
-	{
-		free(array[i]);
-		array[i] = NULL;
-		i++;
-	}
-	free(array);
-	array = NULL;
-}
-
+/*
 char	*ft_strtrijoin(char *str1, char *str2, char *str3)
 {
 	char *bin;
@@ -59,7 +47,7 @@ char	*ft_strtrijoin(char *str1, char *str2, char *str3)
 	ft_strlcat(bin, str2, ft_strlen(bin) + ft_strlen(str2) + 1);
 	ft_strlcat(bin, str3, ft_strlen(bin) + ft_strlen(str3) + 1);
 	return (bin);
-}
+}*/
 
 void	built_in_cd(char *path)
 {
@@ -113,7 +101,7 @@ int	main(int argc, char **argv, char **env)
 				built_in_echo(cmd, link_env);
 		else if (cmd[0] && !ft_strncmp(cmd[0], "env", 3))
 				lst_print(link_env, 1);
-		else if (cmd[0] && !ft_strncmp(cmd[0], "expand", 6))
+		else if (cmd[0] && !ft_strncmp(cmd[0], "export", 6))
 		{
 			if (cmd[1])
 				lst_set_var(&link_env, cmd[1]);

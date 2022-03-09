@@ -3,16 +3,17 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: esivre <marvin@42.fr>                      +#+  +:+       +#+         #
+#    By: crondeau <crondeau@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/10/27 16:19:19 by esivre            #+#    #+#              #
-#    Updated: 2022/03/03 14:37:09 by esivre           ###   ########.fr        #
+#    Updated: 2022/03/09 14:15:11 by crondeau         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
-NAME = minishell
 
-SRCS	=  llistenv.c lexer.c split_cmd.c minishell.c built_in_env.c built_in_echo.c ft_str.c
+NAME	=	minishell
 
+SRCS	=	minishell.c built_in_echo.c built_in_env.c check_pipe.c expand.c check_token.c \
+			free.c lexer.c llist_create.c llist_env.c print.c quotes.c split_cmd.c token.c utils.c
 OBJS	=	$(addprefix $(OBJDIR),$(SRCS:.c=.o))
 DEPS	=	$(addprefix $(DEPDIR),$(SRCS:.c=.d))
 LIBFT	=   libft/libft.a
@@ -22,10 +23,10 @@ OBJDIR	=	./objs/
 DEPDIR	=	./objs/
 INCDIR	=	./includes/
 
-all:		$(LIBFT) $(LIBMLX) $(NAME)
+all:		$(LIBFT) $(NAME)
 
 $(OBJDIR)%.o:	$(SRCDIR)%.c
-			gcc $(FLAGS) -MMD -MP -c -I libft -I $(INCDIR) $< -o $@
+				gcc $(FLAGS) -MMD -MP -c -I libft -I $(INCDIR) $< -o $@
 
 $(LIBFT):		
 			make bonus -C libft

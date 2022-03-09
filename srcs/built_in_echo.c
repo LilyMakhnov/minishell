@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   built_in_echo.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: crondeau <crondeau@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/03/09 09:40:50 by crondeau          #+#    #+#             */
+/*   Updated: 2022/03/09 13:47:33 by crondeau         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 int	print_var(char *str, t_env *env)
@@ -16,34 +28,34 @@ int	print_var(char *str, t_env *env)
 	return (0);
 }
 
-int parse_var(char *cmd, int *j, t_env *env)
+int	parse_var(char *cmd, int *j, t_env *env)
 {
-	char **var;
-	int	l;
-	int t;
+	char	**var;
+	int		l;
+	int		t;
 
 	t = 0;
 	var = ft_split(cmd + *j, '$');
 	l = -1;
-	while (var[++l])	
+	while (var[++l])
 	{
-		t = print_var(var[l], env);					
-		(*j) +=  ft_strlen(var[l]);
+		t = print_var(var[l], env);
+		(*j) += ft_strlen(var[l]);
 		if (l > 0)
 			(*j)++;
 	}
 	l = -1;
 	while (var[++l])
 		free(var[l]);
-	free(var);		
+	free(var);
 	return (t);
 }
 
 void	built_in_echo(char **cmd, t_env *env)
 {
-	int i;
-	int j;
-	int t;
+	int	i;
+	int	j;
+	int	t;
 
 	i = 0;
 	if (!ft_strncmp(cmd[1], "-n", 2))
@@ -52,7 +64,7 @@ void	built_in_echo(char **cmd, t_env *env)
 	{
 		j = 0;
 		t = 0;
-		while(cmd[i][j])
+		while (cmd[i][j])
 		{
 			if (cmd[i][j] != '$')
 			{

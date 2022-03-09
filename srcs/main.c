@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: crondeau <crondeau@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/03/09 10:15:32 by crondeau          #+#    #+#             */
+/*   Updated: 2022/03/09 10:16:15 by crondeau         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 void	free_token(t_token **token)
@@ -25,7 +37,7 @@ void	free_cmd(t_cmd **cmd)
 			tmp = (*cmd)->next;
 			if ((*cmd)->str)
 				free((*cmd)->str);
-		//	if ((*cmd)->argv)
+		//	if ((*cmd)->arg)
 		//		free((*cmd)->argv);
 			if ((*cmd)->token)
 				free_token((*cmd)->token);
@@ -61,7 +73,7 @@ void	go_to_exec(t_cmd **cmd, char *str)
 	}
 }
 
-int	main(int argc, char **argv, char **env)
+int	main(int argc, char **argv, char **env) // too many lines
 {
 	char	*rdl;
 	t_cmd	*cmd;
