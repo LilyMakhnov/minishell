@@ -12,14 +12,14 @@
 
 #include "minishell.h"
 
-int	print_var(char *str, t_env *env)
+int	print_var(char *str, t_env *env, int fd)
 {
 	while (env)
 	{
 		if(!ft_strncmp(env->value, str, ft_strlen(str))
 						&& env->value[ft_strlen(str)] == '=')
 		{
-			write(1, env->value + ft_strlen(str) + 1,
+			write(fd, env->value + ft_strlen(str) + 1,
 				 ft_strlen(env->value + ft_strlen(str) + 1));
 			return (1);
 		}
@@ -28,7 +28,7 @@ int	print_var(char *str, t_env *env)
 	return (0);
 }
 
-int	parse_var(char *cmd, int *j, t_env *env)
+int	parse_var(char *cmd, int *j, t_env *env, int fd)
 {
 	char	**var;
 	int		l;
@@ -39,7 +39,7 @@ int	parse_var(char *cmd, int *j, t_env *env)
 	l = -1;
 	while (var[++l])
 	{
-		t = print_var(var[l], env);
+		t = print_var(var[l], env, fd);
 		(*j) += ft_strlen(var[l]);
 		if (l > 0)
 			(*j)++;
@@ -51,14 +51,14 @@ int	parse_var(char *cmd, int *j, t_env *env)
 	return (t);
 }
 
-void	built_in_echo(char **cmd, t_env *env)
+void	built_in_echo(char **cmd, int fd, t_env *env)
 {
 	int	i;
 	int	j;
 	int	t;
 
 	i = 0;
-	if (!ft_strncmp(cmd[1], "-n", 2))
+	if (cmd[1] && !ft_strncmp(cmd[1], "-n", 2))
 		i++;
 	while (cmd[++i])
 	{
@@ -72,12 +72,12 @@ void	built_in_echo(char **cmd, t_env *env)
 				t++;
 			}
 			else
-				t += parse_var(cmd[i], &j, env);
+				t += parse_var(cmd[i], &j, env, fd);
 			j++;
 		}
 		if (cmd[i + 1] && t > 0)
 			write(1, " ", 1);
 	}
-	if (ft_strncmp(cmd[1], "-n", 2))
-		write (1, "\n", 1);
+	if (!cmd[1] || ft_strncmp(cmd[1], "-n", 2))
+		write (1, "\n", 1);	
 }

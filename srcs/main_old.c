@@ -49,12 +49,7 @@ char	*ft_strtrijoin(char *str1, char *str2, char *str3)
 	return (bin);
 }*/
 
-void	built_in_cd(char *path)
-{
-	if (chdir(path) == -1) {
-		perror("chdir()");
-	}
-}
+
 
 int	main(int argc, char **argv, char **env)
 {

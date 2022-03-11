@@ -31,7 +31,7 @@ void	free_three_str(char *str1, char *str2, char *str3)
 	}
 }
 
-void	ft_free_linkedlist(t_env **liste)
+void	ft_free_env(t_env **liste)
 {
 	t_env	*tmp;
 
@@ -69,6 +69,7 @@ void	ft_free_cmd(t_cmd **cmd)
 	{
 		tmp = (*cmd)->next;
 		free((*cmd)->str);
+		free((*cmd)->arg);
 		ft_free_token(&(*cmd)->token);
 		free(*cmd);
 		*cmd = tmp;

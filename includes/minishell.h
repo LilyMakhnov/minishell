@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <fcntl.h>
 
 typedef struct s_env	t_env;
 typedef struct s_token	t_token;
@@ -54,11 +55,21 @@ struct s_env
 };
 
 extern int g_exit_status;
+
+
+void    built_in_exit(void);
+
+////////////////////////BUILT_IN_CD////////////////////////////
+void	built_in_cd(char *path);
+
 ////////////////////////BUILT_IN_ECHO////////////////////////////
 
-int	print_var(char *str, t_env *env);
-int parse_var(char *cmd, int *j, t_env *env);
-void	built_in_echo(char **cmd, t_env *env);
+//int	print_var(char *str, t_env *env);
+//int parse_var(char *cmd, int *j, t_env *env);
+//void	built_in_echo(char **cmd, t_env *env);
+int	print_var(char *str, t_env *env, int fd);
+void	built_in_echo(char **cmd, int fd, t_env *env);
+int	parse_var(char *cmd, int *j, t_env *env, int fd);
 
 ////////////////////////BUILT_IN_ENV/////////////////////////////
 char	**get_path(char **env);
@@ -88,7 +99,7 @@ int	ft_var_name_len(char *str);
 
 ///////////////////////////FREE/////////////////////////////////
 void	free_three_str(char *str1, char *str2, char *str3);
-void	ft_free_linkedlist(t_env **liste);
+void	ft_free_env(t_env **liste);
 void	ft_free_token(t_token **token);
 void	ft_free_cmd(t_cmd **cmd);
 void	free_array(char **array);
@@ -132,6 +143,7 @@ int	cmd_token(t_cmd **cmd);
 int	get_index_pipe(char *rdl);
 int	add_next_cmd(char *rdl, t_cmd **cmd, int *ip);
 int	split_cmd(char *rdl, t_cmd **cmd);
+int	nbr_cmd(t_cmd *cmd);
 
 //////////////////////////TOKEN//////////////////////////////
 

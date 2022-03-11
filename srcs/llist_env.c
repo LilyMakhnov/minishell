@@ -70,7 +70,7 @@ t_env	*ft_lst_env(char **env)
 	{
 		tmp->next = ft_lst_create(env[i]);
 		if (!(tmp->next))
-			return (ft_free_linkedlist(&first), NULL);
+			return (ft_free_env(&first), NULL);
 		tmp = tmp->next;
 	}
 	return (first);

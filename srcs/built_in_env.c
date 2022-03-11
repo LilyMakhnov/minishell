@@ -31,25 +31,6 @@ char	*get_var(char **env, char *var)
 	}
 	return (NULL);
 }
-/*
-char	*lst_get_var(t_env *env, char *var)
-{
-	char *ret;
-
-	while (env)
-	{
-		if(!ft_strncmp(env->value, var, ft_strlen(var))
-						&& env->value[ft_strlen(var)] == '=')
-		{
-			ret = ft_strdup(env->value + ft_strlen(var) + 1);
-			if (!ret)
-				return (NULL);
-			return (ret);
-		}
-		env = env->next;
-	}
-	return (NULL);
-}*/
 
 int	lst_get_var(t_env *env, char *var, char **value)
 {
@@ -133,6 +114,7 @@ char	**get_path(char **env)
 
 	i = -1;
 	while (env[++i])
+	{
 		if (!ft_strncmp(env[i], "PATH=", 5)) // line 141 Multiple instructions in single line control structure
 		{
 			path = ft_strdup(env[i] + 5);
@@ -144,5 +126,6 @@ char	**get_path(char **env)
 				return (NULL);
 			return (ret);
 		}
+	}
 	return (NULL);
 }

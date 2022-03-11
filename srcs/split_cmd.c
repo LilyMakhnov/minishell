@@ -78,3 +78,16 @@ int	split_cmd(char *rdl, t_cmd **cmd)
 	}
 	return (0);
 }
+
+int	nbr_cmd(t_cmd *cmd)
+{
+	int i;
+
+	i = 0;
+	while (cmd)
+	{
+		cmd = cmd->next;
+		i++;
+	}
+	return (i);
+}

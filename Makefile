@@ -13,7 +13,8 @@
 NAME	=	minishell
 
 SRCS	=	minishell.c built_in_echo.c built_in_env.c check_pipe.c expand.c check_token.c \
-			free.c lexer.c llist_create.c llist_env.c print.c quotes.c split_cmd.c token.c utils.c
+			free.c lexer.c llist_create.c llist_env.c print.c quotes.c split_cmd.c token.c utils.c \
+			built_in_cd.c exit.c
 OBJS	=	$(addprefix $(OBJDIR),$(SRCS:.c=.o))
 DEPS	=	$(addprefix $(DEPDIR),$(SRCS:.c=.d))
 LIBFT	=   libft/libft.a
