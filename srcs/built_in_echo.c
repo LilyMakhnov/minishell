@@ -57,6 +57,7 @@ void	built_in_echo(char **cmd, int fd, t_env *env)
 	int	j;
 	int	t;
 
+	(void)env;
 	i = 0;
 	if (cmd[1] && !ft_strncmp(cmd[1], "-n", 2))
 		i++;
@@ -66,18 +67,18 @@ void	built_in_echo(char **cmd, int fd, t_env *env)
 		t = 0;
 		while (cmd[i][j])
 		{
-			if (cmd[i][j] != '$')
-			{
-				write(1, &cmd[i][j], 1);
+		//	if (cmd[i][j] != '$')
+		//	{
+				write(fd, &cmd[i][j], 1);
 				t++;
-			}
-			else
-				t += parse_var(cmd[i], &j, env, fd);
+		//	}
+		//	else
+		//		t += parse_var(cmd[i], &j, env, fd);
 			j++;
 		}
 		if (cmd[i + 1] && t > 0)
-			write(1, " ", 1);
+			write(fd, " ", 1);
 	}
 	if (!cmd[1] || ft_strncmp(cmd[1], "-n", 2))
-		write (1, "\n", 1);	
+		write (fd, "\n", 1);	
 }

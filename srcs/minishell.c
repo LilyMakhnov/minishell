@@ -157,54 +157,6 @@ void	close_fd_all(t_cmd **cmdl)
 	}
 }
 
-int	wait_pid(t_cmd **cmdl, pid_t *pid)
-{
-	t_cmd	*cur;
-	int				len;
-	int				i;
-
-	i = 0;
-	cur = *cmdl;
-	len = nbr_cmd(cur);
-//	if (len == 1 && ft_is_builtin((*cmdl)->argv[0]))
-//		return (0);
-	while (i < len)
-	{
-		waitpid(pid[i], &g_exit_status, 0);
-		i++;
-	}
-	return (0);
-}
-
-void	go_exec_built_in(t_cmd *cmd, t_env *env)
-{
-	char **arg;
-
-	arg = cmd->arg;
-	if (arg[0] && !ft_strncmp(arg[0], "cd", 2))
-	{
-		if (arg[1])
-			built_in_cd(arg[1]);
-	}
-	else if (arg[0] && !ft_strncmp(arg[0], "echo", 4)) 
-			built_in_echo(arg, cmd->fd_out, env);
-	else if (arg[0] && !ft_strncmp(arg[0], "env", 3))
-			lst_print(env, cmd->fd_out);
-	else if (arg[0] && !ft_strncmp(arg[0], "exit", 4))
-			built_in_exit();		
-	else if (arg[0] && !ft_strncmp(arg[0], "export", 6))
-	{
-		if (arg[1])
-			lst_set_var(&env, arg[1]);
-	}
-	else if (arg[0] && !ft_strncmp(arg[0], "unset", 5))
-	{
-		if (arg[1])
-			lst_remove_var(&env, arg[1]);
-	}
-	exit(0);
-}
-
 int	ft_is_builtin(char *str)
 {
 	if (str == NULL)
@@ -227,7 +179,26 @@ int	ft_is_builtin(char *str)
 		return (0);
 }
 
-void	exec_built_in(t_cmd *cmd, t_env *env)
+int	wait_pid(t_cmd **cmdl, pid_t *pid)
+{
+	t_cmd	*cur;
+	int				len;
+	int				i;
+
+	i = 0;
+	cur = *cmdl;
+	len = nbr_cmd(cur);
+	if (len == 1 && ft_is_builtin((*cmdl)->arg[0]))
+		return (0);
+	while (i < len)
+	{
+		waitpid(pid[i], &g_exit_status, 0);
+		i++;
+	}
+	return (0);
+}
+
+void	exec_built_in_fd(t_cmd *cmd, t_env *env, int *pid)
 {
 	char **arg;
 
@@ -241,8 +212,40 @@ void	exec_built_in(t_cmd *cmd, t_env *env)
 		built_in_echo(arg, cmd->fd_out, env);
 	else if (arg[0] && !ft_strncmp(arg[0], "env", 3))
 		lst_print(env, cmd->fd_out);
+	else if (arg[0] && !ft_strncmp(arg[0], "pwd", 3))
+		built_in_pwd(cmd->fd_out);	
 	else if (arg[0] && !ft_strncmp(arg[0], "exit", 4))
-		built_in_exit();		
+		built_in_exit(&cmd, env, pid);
+	else if (arg[0] && !ft_strncmp(arg[0], "export", 6))
+	{
+		if (arg[1])
+			lst_set_var(&env, arg[1]);
+	}
+	else if (arg[0] && !ft_strncmp(arg[0], "unset", 5))
+	{
+		if (arg[1])
+			lst_remove_var(&env, arg[1]);
+	}
+}
+
+void	exec_built_in(t_cmd *cmd, t_env *env, int *pid)
+{
+	char **arg;
+
+	arg = cmd->arg;
+	if (arg[0] && !ft_strncmp(arg[0], "cd", 2))
+	{
+		if (arg[1])
+			built_in_cd(arg[1]);
+	}
+	else if (arg[0] && !ft_strncmp(arg[0], "echo", 4)) 
+		built_in_echo(arg, 1, env);
+	else if (arg[0] && !ft_strncmp(arg[0], "env", 3))
+		lst_print(env, 1);
+	else if (arg[0] && !ft_strncmp(arg[0], "pwd", 3))
+		built_in_pwd(1);		
+	else if (arg[0] && !ft_strncmp(arg[0], "exit", 4))
+		built_in_exit(&cmd, env, pid);
 	else if (arg[0] && !ft_strncmp(arg[0], "export", 6))
 	{
 		if (arg[1])
@@ -289,17 +292,21 @@ int	go_to_exec(t_env *link_env, t_cmd *cm, pid_t *pid)
 
 	i = 0;
 	cmd = cm->arg;
-	new_env = ft_env_from_lst(link_env);
 	if (ft_is_builtin(cmd[0]))
-		exec_built_in(cm, link_env);
+		exec_built_in(cm, link_env, pid);
 	else if (!access(cmd[0], F_OK))
+	{
+		new_env = ft_env_from_lst(link_env);
 		execve(cmd[0], cmd, new_env);
+		free_array(new_env);
+	}
 	else if (cmd[0])
 	{
+		new_env = ft_env_from_lst(link_env);
 		if (find_path(cm, new_env))
 			i = 1;
+		free_array(new_env);	
 	}
-	free_array(new_env);
 	close_fd_all(&cm);
 	free(pid);
 	ft_free_cmd(&cm);
@@ -428,7 +435,7 @@ int	open_fd(t_cmd **cmd)
 	t_token	*token;
 
 	token = (*cmd)->token;
-	while (cur)
+	while (token)
 	{
 		if (token->type == OPEN_FILE || token->type == LIMITOR)
 			if (redirect_file_in(cmd, token, token->type) == -1)
@@ -451,15 +458,18 @@ int	ft_execve_fct(t_cmd **cmdl, t_cmd **first, t_env *env, pid_t *pid)
 	return (0);
 }
 
-int	multi_fork(pid_t *pid, int i, t_cmd **cmdl, t_cmd **cur, t_env *env)
+int	multi_fork(pid_t *pid, int i, t_cmd **cmdl, t_env *env)
 {
+	t_cmd *cur;
+
+	cur = get_i_cmd(*cmdl, i);
 	pid[i] = fork();
 	if (pid[i] == 0)
-		ft_execve_fct(cur, cmdl, env, pid);
-	if ((*cur)->fd_in != 0)
-		close((*cur)->fd_in);
-	if ((*cur)->fd_out != 1)
-		close((*cur)->fd_out);
+		ft_execve_fct(&cur, cmdl, env, pid);
+	if ((cur)->fd_in != 0)
+		close((cur)->fd_in);
+	if ((cur)->fd_out != 1)
+		close((cur)->fd_out);	
 	return (0);
 }
 
@@ -478,29 +488,39 @@ int	forking(t_cmd **cmdl, pid_t *pid, t_env *env)
 		cur = cur->next;
 	}
 	cur = *cmdl;
-//	if (len == 1 && ft_is_builtin(cur->argv[0]))
-//		return (no_forking(cmdl, pid));
+	if (len == 1 && ft_is_builtin(cur->arg[0]))
+	{
+		exec_built_in_fd(*cmdl, env, pid);
+		return (0);
+	}
 	while (i < len)
 	{
-		multi_fork(pid, i, cmdl, &cur, env);
+		multi_fork(pid, i, cmdl, env);
 		cur = cur->next;
 		i++;
 	}
 	return (0);
 }
 
-int	go_to_fork(t_cmd **cmdl, t_env *env)
+int	go_to_fork(t_cmd **cmd, t_env *env)
 {
 	pid_t			*pid;
 	t_cmd *cur;
 
-	cur = *cmdl;
+	cur = *cmd;
 	pid = malloc(sizeof(pid_t) * nbr_cmd(cur));
 	if (pid == NULL)
 		return (1);
-	forking(cmdl, pid, env);
-	wait_pid(cmdl, pid);
+	forking(cmd, pid, env);
+	wait_pid(cmd, pid);
 	free(pid);
+	if (!ft_strncmp((*cmd)->arg[0], "exit", 4))
+	{
+		close_fd_all(cmd);
+		ft_free_cmd(cmd);
+		ft_free_env(&env);
+		exit(0);
+	}
 	return (0);
 }
 
@@ -543,9 +563,10 @@ int	main(int argc, char **argv, char **env) // too many lines
 			if (!check_token_cmd(cmd))
 			{
 				expand_cmd_token(cmd, llenv);
+
 				rm_quotes_cmd_token(cmd); //to protect
 				organise_arg(cmd);
-			//	print_cmd_token(cmd);
+	//			print_cmd_token(cmd);
 				init_fd_pipe(&cmd);
 				go_to_fork(&cmd, llenv);
 

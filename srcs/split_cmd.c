@@ -91,3 +91,16 @@ int	nbr_cmd(t_cmd *cmd)
 	}
 	return (i);
 }
+
+t_cmd	*get_i_cmd(t_cmd *cmd, int j)
+{
+	int i;
+
+	i = 0;
+	while (i < j)
+	{
+		cmd = cmd->next;
+		i++;
+	}
+	return (cmd);
+}

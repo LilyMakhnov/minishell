@@ -22,8 +22,12 @@ void	ft_update_quotes(char *str, int i, int *quotes)
 	{
 		if (str[j] == '\'' && *quotes == 0)
 			*quotes = 1;
-		if (str[j] == '\"' && *quotes == 0)
+		else if (str[j] == '\"' && *quotes == 0)
 			*quotes = 2;
+		else if (str[j] == '\'' && *quotes == 1)
+			*quotes = 0;
+		else if (str[j] == '\"' && *quotes == 2)
+			*quotes = 0;	
 		j++;
 	}
 }

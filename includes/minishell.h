@@ -57,7 +57,8 @@ struct s_env
 extern int g_exit_status;
 
 
-void    built_in_exit(void);
+void    built_in_exit(t_cmd **cmd, t_env *env, int *pid);
+int	built_in_pwd(int fd);
 
 ////////////////////////BUILT_IN_CD////////////////////////////
 void	built_in_cd(char *path);
@@ -126,7 +127,7 @@ void	lst_print(t_env *env, int fd);
 
 ////////////////////////MINISHELL//////////////////////////////
 
-
+void	close_fd_all(t_cmd **cmdl);
 
 //////////////////////////PRINT///////////////////////////////
 
@@ -144,6 +145,7 @@ int	get_index_pipe(char *rdl);
 int	add_next_cmd(char *rdl, t_cmd **cmd, int *ip);
 int	split_cmd(char *rdl, t_cmd **cmd);
 int	nbr_cmd(t_cmd *cmd);
+t_cmd	*get_i_cmd(t_cmd *cmd, int j);
 
 //////////////////////////TOKEN//////////////////////////////
 

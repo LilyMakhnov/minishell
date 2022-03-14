@@ -44,10 +44,11 @@ int	expand_str(char **str, t_env *env)
 	int	quotes;
 
 	i = -1;
+	quotes = 0;
 	while ((*str)[++i])
 	{
 		ft_update_quotes(*str, i, &quotes);
-		if ((*str)[i] == '$' && quotes != 1)
+		if ((*str)[i] == '$' && (quotes == 0 || quotes == 2))
 		{
 			if (expand_var(str, i, env))
 				return (1);
