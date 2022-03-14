@@ -14,6 +14,24 @@
 
 int	g_exit_status;
 
+void	signal_cmd(int sig)
+{
+	g_exit_status += sig;
+	if (sig == 2)
+	{
+		g_exit_status = 130;
+		printf("\n");
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
+	if (sig == SIGQUIT)
+	{
+		write(2, "Quit (core dumped)\n", ft_strlen("Quit (core dumped)\n"));
+		exit (1);
+	}
+}
+
 int	end_quotes(char *str, int i, int quotes)
 {
 	if (((str)[i + 1] == '\"' && quotes == 2)
@@ -266,25 +284,31 @@ int	find_path(t_cmd *cmd, char **env)
 
 	i = -1;
 	path = get_path(env);
+//	lst_get_var(env, char *var, char **value)
 	if (!path)
 		return (1);
+	bin = NULL;	
 	while (path[++i])
 	{
 		bin = ft_strtrijoin(path[i], "/", cmd->arg[0]);
 		if (!bin)
 			return (free_array(path), 1);		
-		if (!access(bin, F_OK))
+		if (!access(bin, X_OK))
 			execve(bin, cmd->arg, env);
 		free(bin);
 		bin = NULL;
 	}
 	if (!bin)
-		write(1, "command not found\n", 18);
+	{
+		write(1, "command ", 8);
+		write(1, cmd->arg[0], ft_strlen(cmd->arg[0]));
+		write(1, " not found\n", 11);
+	}
 	free_array(path);
 	return (0);
 }
 
-int	go_to_exec(t_env *link_env, t_cmd *cm, pid_t *pid)
+int	go_to_exec(t_env *link_env, t_cmd *first, t_cmd *cm, pid_t *pid)
 {
 	char	**new_env;
 	char	**cmd;
@@ -294,7 +318,7 @@ int	go_to_exec(t_env *link_env, t_cmd *cm, pid_t *pid)
 	cmd = cm->arg;
 	if (ft_is_builtin(cmd[0]))
 		exec_built_in(cm, link_env, pid);
-	else if (!access(cmd[0], F_OK))
+	else if (!access(cmd[0], X_OK))
 	{
 		new_env = ft_env_from_lst(link_env);
 		execve(cmd[0], cmd, new_env);
@@ -307,12 +331,10 @@ int	go_to_exec(t_env *link_env, t_cmd *cm, pid_t *pid)
 			i = 1;
 		free_array(new_env);	
 	}
-	close_fd_all(&cm);
+	close_fd_all(&first);
 	free(pid);
-	ft_free_cmd(&cm);
+	ft_free_cmd(&first);
 	ft_free_env(&link_env);
-	close(0);
-	close(1);
 	exit(i);
 	return (0);
 }
@@ -453,8 +475,7 @@ int	ft_execve_fct(t_cmd **cmdl, t_cmd **first, t_env *env, pid_t *pid)
 	dup2((*cmdl)->fd_in, 0);
 	dup2((*cmdl)->fd_out, 1);
 	close_fd_all(first);
-	go_to_exec(env, *cmdl, pid);
-
+	go_to_exec(env, *first, *cmdl, pid);
 	return (0);
 }
 
@@ -484,7 +505,8 @@ int	forking(t_cmd **cmdl, pid_t *pid, t_env *env)
 	len = nbr_cmd(cur);
 	while (cur)
 	{
-		open_fd(&cur);
+		if(open_fd(&cur) == -1)
+			return (1);
 		cur = cur->next;
 	}
 	cur = *cmdl;
@@ -534,6 +556,7 @@ int	main(int argc, char **argv, char **env) // too many lines
 	(void)argv;
 	g_exit_status = 0;
 	signal(SIGQUIT, SIG_IGN);
+	signal(SIGINT, signal_cmd);
 	llenv = ft_lst_env(env);
 	if (!llenv)
 	{
@@ -542,11 +565,13 @@ int	main(int argc, char **argv, char **env) // too many lines
 	}
 	while (1)
 	{
-		rdl = readline("$_minishell_> ");
+		rdl = readline("$_SlutyHELL_> ");
 		add_history(rdl);
-		while (is_char_in_set(*rdl, " \t"))
+		if (!rdl)
+			return(ft_free_env(&llenv), 0);
+		while (rdl && is_char_in_set(*rdl, " \t"))
 			rdl++;
-		if (rdl[0] && !check_syntax_pipe(rdl) && !is_open_quote(rdl))
+		if (rdl && rdl[0] && !check_syntax_pipe(rdl) && !is_open_quote(rdl))
 		{
 			cmd = (t_cmd *)malloc(sizeof(t_cmd));
 			if (!cmd)
@@ -566,7 +591,7 @@ int	main(int argc, char **argv, char **env) // too many lines
 
 				rm_quotes_cmd_token(cmd); //to protect
 				organise_arg(cmd);
-	//			print_cmd_token(cmd);
+		//		print_cmd_token(cmd);
 				init_fd_pipe(&cmd);
 				go_to_fork(&cmd, llenv);
 
